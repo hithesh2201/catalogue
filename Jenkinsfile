@@ -37,10 +37,13 @@ pipeline {
             }
         }
 
-        stage('Biuld artifact') {
+        stage('Build artifact') {
             steps {
                 sh """
                     ls -ltr
+                    zip -q -r catalogue.zip . -x "*.zip" -x ".git/*"
+                    ls -ltr
+
 
             """
             }
