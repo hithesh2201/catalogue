@@ -29,15 +29,22 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('install dependencies') {
             steps {
                 script {
-                    echo "Running tests..."
-                    // Add your test steps here
+                    npm install
                 }
             }
         }
 
+        stage('Biuld artifact') {
+            steps {
+                sh """
+                    ls -ltr
+
+            """
+            }
+        }
     }
 
     post {
