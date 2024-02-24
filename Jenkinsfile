@@ -64,7 +64,7 @@ pipeline {
         always {
             echo "Cleaning up..."
             // Add any cleanup steps that should run regardless of success or failure
-            
+            deleteDir()
         }
     }
 }
