@@ -45,7 +45,6 @@ pipeline {
                     zip -q -r catalogue.zip . -x "*.zip" -x ".git/*"
                     ls -ltr
 
-
             """
             }
         }
