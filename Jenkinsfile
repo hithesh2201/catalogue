@@ -5,6 +5,7 @@ pipeline {
     // agent any
     environment{
         packageversion=''
+        nexusURL='http://54.83.239.184:8081'
     }
     parameters {
          booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
@@ -46,6 +47,28 @@ pipeline {
 
 
             """
+            }
+        }
+
+        stage('Publish artifact') {
+            steps {
+                script{
+                        nexusArtifactUploader(
+                        nexusVersion: 'nexus3',
+                        protocol: 'http',
+                        nexusUrl: '$nexusURL',
+                        groupId: 'com.roboshop',
+                        version: $packageversion,
+                        repository: 'catalogue',
+                        credentialsId: 'nexus-auth',
+                        artifacts: [
+                            [artifactId: catalogue,
+                            classifier: '',
+                            file: 'catalogue-' + version + '.zip',
+                            type: 'zip']
+                        ]
+                    )
+                }
             }
         }
     }
