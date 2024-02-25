@@ -4,7 +4,7 @@
 // responsibility to pass what type of application and component is this to pipeline deicssion
 
 def configMap = [
-    application: "nodejsVM",
+    application: "nodejsVm",
     component: "catalogue"
 ]
 if( ! env.BRANCH_NAME.equalsIgnoreCase('main')){
