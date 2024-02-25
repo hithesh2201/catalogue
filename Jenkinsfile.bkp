@@ -1,116 +1,123 @@
 pipeline {
     agent {
-        node {
-            label 'AGENT-1'
-        }
+        label 'agent-1'
     }
-    environment { 
-        packageVersion = ''
-        nexusURL = '172.31.5.95:8081'
-    }
-    options {
-        timeout(time: 1, unit: 'HOURS')
-        disableConcurrentBuilds()
+    // agent any
+    environment {
+        packageversion=''
+        nexusURL='54.83.239.184:8081'
     }
     parameters {
-        // string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
-
-        // text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
-
-        booleanParam(name: 'Deploy', defaultValue: false, description: 'Toggle this value')
-
-        // choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
-
-        // password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
+        booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
     }
-    // build
+
+    options {
+        timeout(time: 1, unit: 'HOURS') // Set a timeout for the entire pipeline
+        ansiColor("xterm") 
+        disableConcurrentBuilds()
+    }
+
     stages {
-        stage('Get the version') {
+        stage('Get version from Json file') {
             steps {
                 script {
-                    def packageJson = readJSON file: 'package.json'
-                    packageVersion = packageJson.version
-                    echo "application version: $packageVersion"
+                    def jsonData = readJSON file: 'package.json'
+                    packageversion=jsonData.version
+                    echo "version : $packageversion"
                 }
             }
         }
-        stage('Install dependencies') {
+
+        stage('install dependencies') {
             steps {
-                sh """
+                sh"""
                     npm install
                 """
             }
         }
-        stage('Unit tests') {
-            steps {
-                sh """
-                    echo "unit tests will run here"
-                """
-            }
-        }
+
         stage('Sonar Scan'){
             steps{
                 sh """
-                    sonar-scanner
+                    echo "sonar-scanner"  
                 """
             }
         }
-        stage('Build') {
+
+        stage('Unit testing'){
+            steps{
+                sh """
+                    echo "Unit tests will run here"
+                """
+            }
+        }
+
+        stage('Build artifact') {
             steps {
                 sh """
-                    ls -la
-                    zip -q -r catalogue.zip ./* -x ".git" -x "*.zip"
                     ls -ltr
+                    zip -q -r catalogue.zip . -x "*.zip" -x ".git/*"
+                    ls -ltr 
                 """
             }
         }
-        stage('Publish Artifact') {
+
+        stage('Publish artifact') {
             steps {
-                 nexusArtifactUploader(
-                    nexusVersion: 'nexus3',
-                    protocol: 'http',
-                    nexusUrl: "${nexusURL}",
-                    groupId: 'com.roboshop',
-                    version: "${packageVersion}",
-                    repository: 'catalogue',
-                    credentialsId: 'nexus-auth',
-                    artifacts: [
-                        [artifactId: 'catalogue',
-                        classifier: '',
-                        file: 'catalogue.zip',
-                        type: 'zip']
-                    ]
-                )
+                script {
+                    nexusArtifactUploader(
+                        nexusVersion: 'nexus3',
+                        protocol: 'http',
+                        nexusUrl: "$nexusURL",
+                        groupId: 'com.roboshop',
+                        version: "$packageversion",
+                        repository: 'catalogue',
+                        credentialsId: 'nexus-auth',
+                        artifacts: [
+                            [artifactId: 'catalogue',
+                             classifier: '',
+                             file: 'catalogue.zip',
+                             type: 'zip']
+                        ]
+                    )
+                }
             }
         }
+
         stage('Deploy') {
             when {
-                expression{
-                    params.Deploy == 'true'
+                // Execute the deployment stage only if the 'deploy' parameter is set to true
+                expression {
+                    params.deploy == true
                 }
             }
             steps {
                 script {
-                        def params = [
-                            string(name: 'version', value: "$packageVersion"),
-                            string(name: 'environment', value: "dev")
-                        ]
-                        build job: "catalogue-deploy", wait: true, parameters: params
-                    }
+                    build job: 'catalogue-deploy', wait=true , parameters: [
+                        // Pass parameters to the downstream job
+                        string(name: 'packageversion', value: "$packageversion"),
+                        // Add more parameters as needed
+                    ]
+                }
             }
         }
     }
-    // post build
-    post { 
-        always { 
-            echo 'I will always say Hello again!'
+
+    post {
+        success {
+            echo "Pipeline completed successfully. Sending notification..."
+            // Add notification steps for successful builds
+        }
+
+        failure {
+            echo "Pipeline failed. Sending notification..."
+            // Add notification steps for failed builds
+        }
+
+        always {
+            echo "Cleaning up..."
+            // Add any cleanup steps that should run regardless of success or failure
             deleteDir()
-        }
-        failure { 
-            echo 'this runs when pipeline is failed, used generally to send some alerts'
-        }
-        success{
-            echo 'I will say Hello when pipeline is success'
         }
     }
 }
