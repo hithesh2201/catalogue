@@ -22,7 +22,7 @@ var mongoConnected = false;
 const app = express();
 
 app.use(expLogger);
-
+// added some code here
 app.use((req, res, next) => {
     res.set('Timing-Allow-Origin', '*');
     res.set('Access-Control-Allow-Origin', '*');
