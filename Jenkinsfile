@@ -1,31 +1,29 @@
 pipeline {
-   agent {
+    agent {
         label 'agent-1'
     }
     // agent any
-    environment{
+    environment {
         packageversion=''
         nexusURL='54.83.239.184:8081'
     }
     parameters {
-         booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
+        booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
     }
-
 
     options {
         timeout(time: 1, unit: 'HOURS') // Set a timeout for the entire pipeline
         ansiColor("xterm") 
         disableConcurrentBuilds()
-
     }
 
     stages {
         stage('Get version from Json file') {
             steps {
                 script {
-                     def jsonData = readJSON file: 'package.json'
-                     packageversion=jsonData.version
-                     echo "version : $packageversion"
+                    def jsonData = readJSON file: 'package.json'
+                    packageversion=jsonData.version
+                    echo "version : $packageversion"
                 }
             }
         }
@@ -44,15 +42,14 @@ pipeline {
                     ls -ltr
                     zip -q -r catalogue.zip . -x "*.zip" -x ".git/*"
                     ls -ltr 
-
-            """
+                """
             }
         }
 
         stage('Publish artifact') {
             steps {
-                script{
-                        nexusArtifactUploader(
+                script {
+                    nexusArtifactUploader(
                         nexusVersion: 'nexus3',
                         protocol: 'http',
                         nexusUrl: "$nexusURL",
@@ -62,9 +59,9 @@ pipeline {
                         credentialsId: 'nexus-auth',
                         artifacts: [
                             [artifactId: 'catalogue',
-                            classifier: '',
-                            file: 'catalogue.zip',
-                            type: 'zip']
+                             classifier: '',
+                             file: 'catalogue.zip',
+                             type: 'zip']
                         ]
                     )
                 }
@@ -72,24 +69,23 @@ pipeline {
         }
 
         stage('Deploy') {
-    when {
-        // Execute the deployment stage only if the 'deploy' parameter is set to true
-        expression {
-            params.deploy == true
+            when {
+                // Execute the deployment stage only if the 'deploy' parameter is set to true
+                expression {
+                    params.deploy == true
+                }
+            }
+            steps {
+                script {
+                    build job: 'catalogue-deploy', parameters: [
+                        // Pass parameters to the downstream job
+                        string(name: 'packageversion', value: "${params.packageversion}"),
+                        // Add more parameters as needed
+                    ]
+                }
+            }
         }
     }
-    steps {
-        script {
-            build job: 'catalogue-deploy', parameters: [
-                // Pass parameters to the downstream job
-                string(name: 'packageversion', value: "${params.packageversion}"),
-                // Add more parameters as needed
-            ]
-        }
-    }
-}
-
-    
 
     post {
         success {
@@ -108,5 +104,4 @@ pipeline {
             deleteDir()
         }
     }
-
 }
