@@ -44,6 +44,14 @@ pipeline {
             }
         }
 
+        stage('Unit testing'){
+            steps{
+                sh """
+                    echo "Unit tests will run here"
+                """
+            }
+        }
+
         stage('Build artifact') {
             steps {
                 sh """
