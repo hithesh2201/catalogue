@@ -36,6 +36,14 @@ pipeline {
             }
         }
 
+        stage('Sonar Scan'){
+            steps{
+                sh """
+                    sonar-scanner
+                """
+            }
+        }
+
         stage('Build artifact') {
             steps {
                 sh """
