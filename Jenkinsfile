@@ -77,6 +77,7 @@ pipeline {
                 expression {
                     params.deploy == true
                 }
+            }
             steps {
                 script{
                     build job: 'catalogue-deploy', parameters: [
