@@ -95,7 +95,7 @@ pipeline {
                 script {
                     build job: 'catalogue-deploy', parameters: [
                         // Pass parameters to the downstream job
-                        string(name: 'packageversion', value: "${params.packageversion}"),
+                        string(name: 'packageversion', value: "$packageversion"),
                         // Add more parameters as needed
                     ]
                 }
