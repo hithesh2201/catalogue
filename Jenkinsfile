@@ -5,7 +5,7 @@ pipeline {
     // agent any
     environment{
         packageversion=''
-        nexusURL='http://54.83.239.184:8081'
+        nexusURL='54.83.239.184:8081'
     }
     parameters {
          booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
