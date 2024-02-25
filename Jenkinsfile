@@ -72,22 +72,24 @@ pipeline {
         }
 
         stage('Deploy') {
-            when {
-                // Execute the deployment stage only if the 'deploy' parameter is set to true
-                expression {
-                    params.deploy == true
-                }
-            }
-            steps {
-                script{
-                    build job: 'catalogue-deploy', parameters: [
-                // Pass parameters to the downstream job
-                string(name: 'packageversion', value: ${params.packageversion}),
-                // Add more parameters as needed
-            ]
-                }
+    when {
+        // Execute the deployment stage only if the 'deploy' parameter is set to true
+        expression {
+            params.deploy == true
         }
     }
+    steps {
+        script {
+            build job: 'catalogue-deploy', parameters: [
+                // Pass parameters to the downstream job
+                string(name: 'packageversion', value: "${params.packageversion}"),
+                // Add more parameters as needed
+            ]
+        }
+    }
+}
+
+    
 
     post {
         success {
@@ -106,5 +108,5 @@ pipeline {
             deleteDir()
         }
     }
-}
+
 }
